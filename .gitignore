@@ -53,3 +53,5 @@ atlas_*.json
 audio.json
 audio.mp3
 audio.ogg
+levels.json
+scenes.json

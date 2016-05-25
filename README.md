@@ -1,2 +1,2 @@
 # aladdin's cave
-game jam prototype for the The Public Domain Jam 3
+a sokoban action puzzle game prototype telling parts of 'the story of aladdin; or, the wonderful lamp'

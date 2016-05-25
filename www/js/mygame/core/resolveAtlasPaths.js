@@ -3,43 +3,10 @@ G.resolveAtlasPaths = (function (ATLAS_BASE_NAME, GFX_PATH, DATA_PATH, GFX_FORMA
 
     var atlases = [
         {
-            size: 320,
-            count: 1
-        }, {
             size: 480,
             count: 1
         }, {
-            size: 600,
-            count: 1
-        }, {
-            size: 614,
-            count: 1
-        }, {
-            size: 720,
-            count: 1
-        }, {
-            size: 768,
-            count: 1
-        }, {
-            size: 800,
-            count: 1
-        }, {
-            size: 864,
-            count: 1
-        }, {
-            size: 900,
-            count: 1
-        }, {
-            size: 960,
-            count: 1
-        }, {
-            size: 1024,
-            count: 1
-        }, {
-            size: 1050,
-            count: 1
-        }, {
-            size: 1080,
+            size: 1334,
             count: 1
         }
     ];
@@ -90,4 +57,4 @@ G.resolveAtlasPaths = (function (ATLAS_BASE_NAME, GFX_PATH, DATA_PATH, GFX_FORMA
     }
 
     return resolveAtlasPaths;
-})();
+})(G.Files.ATLAS_BASE_NAME, G.Files.GFX_PATH, G.Files.DATA_PATH, G.Files.GFX_FORMAT, G.Files.DATA_FORMAT);
