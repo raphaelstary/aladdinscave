@@ -1,5 +1,5 @@
-G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMScene, DialogScreen, add, Math, Font,
-    changeSign, Transition, installPlayerKeyBoard, FailureScreen, SuccessScreen, ScreenShaker) {
+G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMScene, PauseScreen, add, Math, Font,
+    changeSign, Transition, installPlayerKeyBoard, SuccessScreen, ScreenShaker, PauseReturnValue) {
     "use strict";
 
     function GameScreen(services, level) {
@@ -15,6 +15,7 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
 
         this.abort = false;
         this.__paused = false;
+        this.__itIsOver = false;
 
         this.gameState = {
             undo: false
@@ -34,10 +35,14 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
     GameScreen.prototype.stepDown = function () {
         if (this.__paused)
             return;
+        if (this.__itIsOver)
+            return;
     };
 
     GameScreen.prototype.stepUp = function () {
         if (this.__paused)
+            return;
+        if (this.__itIsOver)
             return;
 
         this.gameState.undo = true;
@@ -52,41 +57,36 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
     GameScreen.prototype.pauseDown = function () {
         if (this.__paused)
             return;
+        if (this.__itIsOver)
+            return;
     };
 
     GameScreen.prototype.pauseUp = function () {
         if (this.__paused)
             return;
+        if (this.__itIsOver)
+            return;
 
         this.__pause();
 
-        var dialogScreen = new MVVMScene(this.services, this.scenes[Scenes.DIALOG_SCREEN], new DialogScreen(this.services), Scenes.DIALOG_SCREEN);
-
+        var pauseScene = new MVVMScene(this.services, this.services.scenes[Scenes.PAUSE_SCREEN], new PauseScreen(this.services), Scenes.PAUSE_SCREEN);
         var self = this;
-        this.timer.doLater(function () {
-            dialogScreen.show(function (state) {
-                if (state == 'abort') {
-                    self.abort = true;
-
-                    self.__showFailureOverlay(self.nextScene.bind(self));
-                    return;
-                }
+        pauseScene.show(function (state) {
+            if (state == PauseReturnValue.RESUME) {
                 self.__resume();
-            })
-        }, this.sceneStorage.do30fps ? 15 : 30);
-    };
-
-    GameScreen.prototype.__showFailureOverlay = function (next) {
-        this.__pause();
-
-        var failureScreen = new MVVMScene(this.services, this.scenes[Scenes.FAILURE_SCREEN], new FailureScreen(this.services), Scenes.FAILURE_SCREEN);
-
-        failureScreen.show(next);
+            } else if (state == PauseReturnValue.RESTART) {
+                self.restartScene();
+            } else if (state == PauseReturnValue.CANCEL) {
+                self.__itIsOver = true;
+                self.nextScene();
+            } else {
+                throw 'internal error: unhandled code branch';
+            }
+        });
     };
 
     GameScreen.prototype.__showSuccessOverlay = function (next) {
         this.__pause();
-
         var successScreen = new MVVMScene(this.services, this.scenes[Scenes.SUCCESS_SCREEN], new SuccessScreen(this.services), Scenes.SUCCESS_SCREEN);
 
         successScreen.show(next);
@@ -94,12 +94,14 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
 
     GameScreen.prototype.postConstruct = function () {
         this.__paused = false;
+        this.__itIsOver = false;
         this.abort = false;
         this.gameState = {
             undo: false
         };
 
         if (this.sceneStorage.abortGame) {
+            this.__itIsOver = true;
             this.nextScene();
             return;
         }
@@ -114,6 +116,7 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
         this.shaker.add(this.stepBack);
 
         function success() {
+            self.__itIsOver = true;
             self.__showSuccessOverlay(self.nextScene.bind(self));
         }
 
@@ -170,5 +173,5 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
     };
 
     return GameScreen;
-})(H5.Height, H5.Event, G.PlayFactory, H5.zero, H5.Width, G.Scenes, H5.MVVMScene, G.DialogScreen, H5.add, Math, H5.Font,
-    H5.changeSign, H5.Transition, G.installPlayerKeyBoard, G.FailureScreen, G.SuccessScreen, H5.ScreenShaker);
+})(H5.Height, H5.Event, G.PlayFactory, H5.zero, H5.Width, G.Scenes, H5.MVVMScene, G.PauseScreen, H5.add, Math, H5.Font,
+    H5.changeSign, H5.Transition, G.installPlayerKeyBoard, G.SuccessScreen, H5.ScreenShaker, G.PauseReturnValue);
