@@ -85,7 +85,8 @@ G.DomainGridHelper = (function () {
         var isNeighborOfPlayer = this.gridHelper.isNeighbor(player.u, player.v, u, v);
         if (isNeighborOfPlayer) {
             var tileType = this.grid.get(u, v);
-            return tileType === Tile.EMPTY;
+            return tileType === Tile.EMPTY && (this.grid.getBackground(u, v) === BackgroundTile.FLOOR ||
+                this.grid.getBackground(u, v) === BackgroundTile.GOAL);
         }
         return false;
     };
@@ -98,19 +99,24 @@ G.DomainGridHelper = (function () {
         if (!isBox)
             return false;
         var tile;
+        var backgroundTile;
         if (player.u < u) {
             tile = this.gridHelper.getRightNeighbor(u, v);
+            backgroundTile = this.gridHelper.getBackgroundRightNeighbor(u, v);
         }
         if (player.u > u) {
             tile = this.gridHelper.getLeftNeighbor(u, v);
+            backgroundTile = this.gridHelper.getBackgroundLeftNeighbor(u, v);
         }
         if (player.v < v) {
             tile = this.gridHelper.getBottomNeighbor(u, v);
+            backgroundTile = this.gridHelper.getBackgroundBottomNeighbor(u, v);
         }
         if (player.v > v) {
             tile = this.gridHelper.getTopNeighbor(u, v);
+            backgroundTile = this.gridHelper.getBackgroundTopNeighbor(u, v);
         }
-        return tile.type === Tile.EMPTY;
+        return tile && tile.type === Tile.EMPTY && backgroundTile && backgroundTile.type === BackgroundTile.FLOOR;
     };
 
     DomainGridHelper.prototype.movePlayer = function (player, u, v) {
