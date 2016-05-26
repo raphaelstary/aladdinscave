@@ -11,7 +11,8 @@ G.DomainGridHelper = (function () {
     var BackgroundTile = {
         EMPTY: 0,
         FLOOR: 'F',
-        GOAL: 'G'
+        GOAL: 'G',
+        SWITCH: 'S'
     };
 
     var Tile = {
@@ -76,32 +77,8 @@ G.DomainGridHelper = (function () {
         return parts;
     };
 
-    DomainGridHelper.prototype.isPlayerNextToBox = function (player) {
-        var neighbors = this.gridHelper.getNeighbors(player.u, player.v);
-        return neighbors.length > 0 && neighbors.some(function (tile) {
-                return tile.type[0] === Tile.BOX;
-            });
-    };
-
-    DomainGridHelper.prototype.getTouchingBoxes = function (player) {
-        var neighbors = this.gridHelper.getNeighbors(player.u, player.v);
-        var boxes = [];
-        neighbors.forEach(function (tile) {
-            if (tile.type[0] === Tile.BOX)
-                boxes.push(tile);
-        });
-        return boxes;
-    };
-
-    DomainGridHelper.prototype.isBoxOnTarget = function (box) {
-        return this.grid.getBackground(box.u, box.v) === BackgroundTile.GOAL;
-    };
-
-    DomainGridHelper.prototype.isBoxNextToPlayer = function (box) {
-        var neighbors = this.gridHelper.getNeighbors(box.u, box.v);
-        return neighbors.length > 0 && neighbors.some(function (tile) {
-                return tile.type[0] === Tile.PLAYER;
-            });
+    DomainGridHelper.prototype.isPlayerOnGoal = function (player) {
+        return this.grid.getBackground(player.u, player.v) === BackgroundTile.GOAL;
     };
 
     DomainGridHelper.prototype.canPlayerMove = function (player, u, v) {

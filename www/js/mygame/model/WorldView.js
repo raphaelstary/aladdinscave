@@ -15,9 +15,6 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
 
         this.moveSpeed = is30fps ? 5 : 10;
         this.boxFrontMoveSpeed = is30fps ? 15 : 30;
-        // this.boxHighlight = is30fps ? 6 : 15;
-        // this.boxOldBack = is30fps ? 15 : 30;
-        // this.boxNewBack = is30fps ? 15 : 30;
         this.dropInSpeed = is30fps ? 15 : 30;
         this.boxFrontOpacityEaseIn = is30fps ? 30 : 60;
         this.boxFrontOpacityEaseOut = is30fps ? 30 : 60;
@@ -37,7 +34,6 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
         this.walls.forEach(removeElem);
         iterateEntries(this.boxes, function (wrapper) {
             wrapper.front.remove();
-            // wrapper.back.remove();
         });
         iterateEntries(this.floorTiles, removeElem);
         this.goalTiles.forEach(removeElem);
@@ -126,40 +122,6 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
             this.boxFrontMoveSpeed, callback);
         path.setSpacing(Transition.EASE_OUT_ELASTIC);
         this.boxes[changeSet.tile].path = path;
-
-        // this.timer.doLater(function () {
-        //     self.boxes[changeSet.tile].back.remove();
-        //     var back = self.boxes[changeSet.tile].back = self.gridViewHelper.createBackground(changeSet.newU,
-        //         changeSet.newV, Images.BOX_BG, 2, self.__defaultHeight);
-        //     back.alpha = 0.3;
-        //     back.opacityTo(1).setDuration(self.boxNewBack).setSpacing(Transition.EASE_OUT_EXPO);
-        // }, this.boxHighlight);
-
-        // var back = this.boxes[changeSet.tile].back;
-        // back.alpha = 1;
-        // back.opacityTo(0.3).setDuration(this.boxOldBack).setSpacing(Transition.EASE_IN_EXPO).setCallback(function () {
-        //     back.remove();
-        // });
-    };
-
-    WorldView.prototype.activateBox = function (box) {
-        // this.__changeBoxFront(box, Images.BOX_ACTIVE);
-    };
-
-    WorldView.prototype.changeBoxToOnTarget = function (box) {
-        // this.__changeBoxFront(box, Images.BOX_TARGET);
-    };
-
-    WorldView.prototype.changeBoxToNormal = function (box) {
-        this.__changeBoxFront(box, Images.BOX);
-    };
-
-    WorldView.prototype.__changeBoxFront = function (box, nextImg) {
-        var wrapper = this.boxes[box.type];
-        if (wrapper.state === nextImg)
-            return;
-        wrapper.front.data = this.stage.getGraphic(nextImg);
-        wrapper.state = nextImg;
     };
 
     WorldView.prototype.undoMove = function (change, callback) {

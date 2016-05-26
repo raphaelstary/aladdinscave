@@ -52,32 +52,17 @@ G.World = (function () {
         var self = this;
 
         function postMove() {
-            self.changedBoxes.forEach(function (box) {
-                if (!(self.domainGridHelper.isBoxNextToPlayer(box) || self.domainGridHelper.isBoxOnTarget(box))) {
-                    self.worldView.changeBoxToNormal(box);
-                }
-            });
+
             if (self.changedBoxes.length > 0)
                 self.changedBoxes = [];
 
             self.movesCounter++;
             self.movesCallback(self.movesCounter);
 
-            var success = self.boxes.every(self.domainGridHelper.isBoxOnTarget.bind(self.domainGridHelper));
+            var success = self.domainGridHelper.isPlayerOnGoal(self.player);
             if (success) {
                 self.gameOverSuccess();
                 return;
-            }
-
-            if (self.domainGridHelper.isPlayerNextToBox(player)) {
-                var boxesToActivate = self.domainGridHelper.getTouchingBoxes(player);
-                boxesToActivate.forEach(function (box) {
-                    self.changedBoxes.push(box);
-                    self.worldView.activateBox(box);
-                    if (self.domainGridHelper.isBoxOnTarget(box)) {
-                        self.worldView.changeBoxToOnTarget(box);
-                    }
-                });
             }
 
             // i donno ... flash smth or highlight smth
