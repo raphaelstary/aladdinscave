@@ -10,9 +10,8 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
         this.player = null;
         this.boxes = {};
         this.walls = [];
-        this.targetTiles = [];
-        this.emptyTiles = {};
-        this.nothingTiles = [];
+        this.goalTiles = [];
+        this.floorTiles = {};
 
         this.moveSpeed = is30fps ? 5 : 10;
         this.boxFrontMoveSpeed = is30fps ? 15 : 30;
@@ -23,7 +22,8 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
         this.boxFrontOpacityEaseIn = is30fps ? 30 : 60;
         this.boxFrontOpacityEaseOut = is30fps ? 30 : 60;
         this.playerFootPrintEaseOut = is30fps ? 15 : 30;
-        
+        this.revertSpeed = is30fps ? 5 : 10;
+
         this.xTiles = 0;
         this.yTiles = 0;
     }
@@ -39,9 +39,8 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
             wrapper.front.remove();
             // wrapper.back.remove();
         });
-        iterateEntries(this.emptyTiles, removeElem);
-        this.nothingTiles.forEach(removeElem);
-        this.targetTiles.forEach(removeElem);
+        iterateEntries(this.floorTiles, removeElem);
+        this.goalTiles.forEach(removeElem);
     };
 
     WorldView.prototype.drawLevel = function (player, boxes, walls, goalTiles, floorTiles, emptyTiles, callback) {
@@ -94,40 +93,13 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
         }, this);
 
         goalTiles.forEach(function (target) {
-            this.targetTiles.push(dropIn(
-                this.gridViewHelper.createBackground(target.u, target.v, Images.GOAL, 3, defaultHeight)));
+            this.goalTiles.push(
+                dropIn(this.gridViewHelper.createBackground(target.u, target.v, Images.GOAL, 3, defaultHeight)));
         }, this);
 
         floorTiles.forEach(function (tile) {
-            this.emptyTiles[calcCantorPairing(tile.u, tile.v)] = dropIn(
+            this.floorTiles[calcCantorPairing(tile.u, tile.v)] = dropIn(
                 this.gridViewHelper.createBackground(tile.u, tile.v, Images.FLOOR, 1, defaultHeight));
-        }, this);
-
-        emptyTiles.forEach(function (tile) {
-            // var randomValue = range(0, 100);
-            // var drawable, scaleFactor;
-            // if (randomValue < 80 || tile.v == 0 || tile.v == this.yTiles - 1 || tile.u == 0 ||
-            //     tile.u == this.xTiles - 1) {
-            //     this.nothingTiles.push(
-            //         dropIn(this.gridViewHelper.createRectBackground(tile.u, tile.v, Colors.NOTHING_COLOR, 2)));
-            // } else if (randomValue < 85) {
-            //     var offset = defaultHeight - 0;
-            //
-            //     drawable = this.stage.createImage(Images.BG_DARK)
-            //         .setPosition(this.gridViewHelper.__getX(tile.u), this.gridViewHelper.__getY(tile.v)).setZIndex(1);
-            //     scaleFactor = drawable.data.height / defaultHeight;
-            //     drawable.scale = this.gridViewHelper.__calcBaseScale(drawable.getHeight()) * scaleFactor;
-            //     this.nothingTiles.push(dropIn(drawable));
-            //
-            // } else {
-            //     drawable = this.stage.createImage(Images.BG_LIGHT)
-            //         .setPosition(add(this.gridViewHelper.__getX(tile.u), Width.get(1920, 4)),
-            //             add(this.gridViewHelper.__getY(tile.v), Height.get(1080, 4))).setZIndex(2);
-            //     scaleFactor = drawable.data.height / defaultHeight;
-            //     drawable.scale = this.gridViewHelper.__calcBaseScale(drawable.getHeight()) * scaleFactor;
-            //     this.nothingTiles.push(dropIn(drawable));
-            // }
-
         }, this);
     };
 
@@ -188,6 +160,16 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
             return;
         wrapper.front.data = this.stage.getGraphic(nextImg);
         wrapper.state = nextImg;
+    };
+
+    WorldView.prototype.undoMove = function (change, callback) {
+        if (change.type == 'changed') {
+            if (change.tile[0] == 'B')
+                this.gridViewHelper.move(this.boxes[change.tile].front, change.oldU, change.oldV, this.revertSpeed,
+                    callback);
+            if (change.tile == 'P')
+                this.gridViewHelper.move(this.player, change.oldU, change.oldV, this.revertSpeed, callback);
+        }
     };
 
     return WorldView;

@@ -12,6 +12,7 @@ G.World = (function () {
         this.movesCallback = movesFn;
 
         this.changedBoxes = [];
+        this.history = [];
     }
 
     World.prototype.init = function (callback) {
@@ -86,8 +87,9 @@ G.World = (function () {
         }
 
         if (canMove) {
-            var change = this.domainGridHelper.movePlayer(player, u, v);
-            this.worldView.movePlayer(change, postMove);
+            var changeHistory = this.domainGridHelper.movePlayer(player, u, v);
+            this.history.push(changeHistory);
+            this.worldView.movePlayer(changeHistory.change, postMove);
 
         } else if (canPush) {
             var deltaU = u - player.u;
@@ -103,13 +105,43 @@ G.World = (function () {
             if (!foundSmth)
                 return false;
 
-            var boxChange = this.domainGridHelper.pushBox(myBox, deltaU, deltaV);
-            var moveChange = this.domainGridHelper.movePlayer(player, u, v);
+            var boxChangeHistory = this.domainGridHelper.pushBox(myBox, deltaU, deltaV);
+            var moveChangeHistory = this.domainGridHelper.movePlayer(player, u, v);
+            
+            this.history.push(moveChangeHistory);
+            this.history.push(boxChangeHistory);
 
-            this.worldView.movePlayer(moveChange, postMove);
-            this.worldView.moveBox(boxChange);
+            this.worldView.movePlayer(moveChangeHistory.change, postMove);
+            this.worldView.moveBox(boxChangeHistory.change);
         }
         return true;
+    };
+
+    World.prototype.undoLastMove = function (callback) {
+        if (this.history.length < 1) {
+            if (callback)
+                callback();
+            return false;
+        }
+
+        var self = this;
+        var last;
+
+        function extendedCallback() {
+            if (last.type != 'user') {
+                undo();
+            } else if (callback)
+                callback();
+        }
+
+        function undo() {
+            last = self.history.pop();
+            self.domainGridHelper.undoChange(last.change, last.entity);
+            self.worldView.undoMove(last.change, extendedCallback);
+        }
+
+        undo();
+        return true
     };
 
     return World;

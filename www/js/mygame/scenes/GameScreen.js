@@ -1,5 +1,5 @@
 G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMScene, DialogScreen, add, Math, Font,
-    changeSign, Transition, installPlayerKeyBoard, FailureScreen, SuccessScreen) {
+    changeSign, Transition, installPlayerKeyBoard, FailureScreen, SuccessScreen, ScreenShaker) {
     "use strict";
 
     function GameScreen(services, level) {
@@ -15,6 +15,10 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
 
         this.abort = false;
         this.__paused = false;
+
+        this.gameState = {
+            undo: false
+        };
     }
 
     GameScreen.prototype.__pause = function () {
@@ -36,6 +40,14 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
     GameScreen.prototype.stepUp = function () {
         if (this.__paused)
             return;
+
+        this.gameState.undo = true;
+
+        var self = this;
+        if (!this.world.undoLastMove(function () {
+                self.gameState.undo = false;
+            }))
+            this.shaker.startSmallShake();
     };
 
     GameScreen.prototype.pauseDown = function () {
@@ -84,6 +96,9 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
     GameScreen.prototype.postConstruct = function () {
         this.__paused = false;
         this.abort = false;
+        this.gameState = {
+            undo: false
+        };
 
         if (this.sceneStorage.abortGame) {
             this.nextScene();
@@ -92,8 +107,12 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
 
         var self = this;
 
-        var topOffset = Height.get(1080, 140);
-        var bottomOffset = Height.get(1080, 120);
+        this.shaker = new ScreenShaker(self.device);
+        this.shakerResizeId = self.events.subscribe(Event.RESIZE, this.shaker.resize.bind(this.shaker));
+        this.shakerTickId = self.events.subscribe(Event.TICK_MOVE, this.shaker.update.bind(this.shaker));
+        this.shaker.__init(self.sceneStorage.do30fps);
+
+        this.shaker.add(this.stepBack);
 
         function success() {
             self.__showSuccessOverlay(self.nextScene.bind(self));
@@ -107,13 +126,20 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
             // log moves
         }
 
+        var topOffset = Height.get(1334, 300);
+
         this.world = PlayFactory.createWorld(this.stage, this.timer, this.device, this.level, success, failure, moves,
-            topOffset, bottomOffset, this.sceneStorage.do30fps);
+            topOffset, zero, this.sceneStorage.do30fps);
 
         self.world.init();
 
         this.playerController = PlayFactory.createPlayerController(this.world);
         this.pointerHandler = this.events.subscribe(Event.POINTER, function (pointer) {
+            if (self.gameState.undo)
+                return;
+            if (pointer.y <= topOffset(self.device.screenHeight))
+                return;
+
             if (pointer.type == 'down')
                 self.playerController.handlePointerDown(pointer.x, pointer.y);
             if (pointer.type == 'up')
@@ -122,7 +148,7 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
                 self.playerController.handlePointerMove(pointer.x, pointer.y);
         });
 
-        this.keyBoardHandler = installPlayerKeyBoard(this.events, this.playerController);
+        this.keyBoardHandler = installPlayerKeyBoard(this.events, this.playerController, this.gameState);
     };
 
     GameScreen.prototype.preDestroy = function () {
@@ -135,9 +161,12 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
 
         this.events.unsubscribe(this.pointerHandler);
         this.events.unsubscribe(this.keyBoardHandler);
+        this.events.unsubscribe(this.shakerTickId);
+        this.events.unsubscribe(this.shakerResizeId);
+
         this.world.worldView.preDestroy();
     };
 
     return GameScreen;
-})(H5.Height, H5.Event, G.PlayFactory, H5.zero, H5.Width, G.Scenes, H5.MVVMScene, G.DialogScreen, H5.add, Math,
-    H5.Font, H5.changeSign, H5.Transition, G.installPlayerKeyBoard, G.FailureScreen, G.SuccessScreen);
+})(H5.Height, H5.Event, G.PlayFactory, H5.zero, H5.Width, G.Scenes, H5.MVVMScene, G.DialogScreen, H5.add, Math, H5.Font,
+    H5.changeSign, H5.Transition, G.installPlayerKeyBoard, G.FailureScreen, G.SuccessScreen, H5.ScreenShaker);

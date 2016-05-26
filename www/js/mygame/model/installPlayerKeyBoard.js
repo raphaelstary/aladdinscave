@@ -1,13 +1,16 @@
 G.installPlayerKeyBoard = (function (Event, Key) {
     "use strict";
 
-    function installPlayerKeyBoard(events, playerController) {
+    function installPlayerKeyBoard(events, playerController, gameState) {
         var leftPressed = false;
         var rightPressed = false;
         var upPressed = false;
         var downPressed = false;
 
         return events.subscribe(Event.KEY_BOARD, function (keyBoard) {
+            if (gameState.undo)
+                return;
+            
             if (keyBoard[Key.LEFT] && !leftPressed) {
                 leftPressed = true;
                 playerController.handleKeyLeft();

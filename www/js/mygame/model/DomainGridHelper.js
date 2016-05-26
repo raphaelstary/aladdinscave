@@ -21,6 +21,19 @@ G.DomainGridHelper = (function () {
         EMPTY: 0
     };
 
+    var History = {
+        NEW: 'new',
+        CHANGED: 'changed',
+        REMOVED: 'removed'
+    };
+
+    var Interaction = {
+        USER: 'user',
+        GRAVITY: 'gravity',
+        PUSH: 'push',
+        REMOVE: 'remove'
+    };
+
     DomainGridHelper.prototype.getWalls = function () {
         return this.__getTiles(Tile.WALL);
     };
@@ -110,11 +123,14 @@ G.DomainGridHelper = (function () {
         var tile;
         if (player.u < u) {
             tile = this.gridHelper.getRightNeighbor(u, v);
-        } if (player.u > u) {
+        }
+        if (player.u > u) {
             tile = this.gridHelper.getLeftNeighbor(u, v);
-        } if (player.v < v) {
+        }
+        if (player.v < v) {
             tile = this.gridHelper.getBottomNeighbor(u, v);
-        } if (player.v > v) {
+        }
+        if (player.v > v) {
             tile = this.gridHelper.getTopNeighbor(u, v);
         }
         return tile.type === Tile.EMPTY;
@@ -128,12 +144,17 @@ G.DomainGridHelper = (function () {
             oldV: player.v,
             newU: u,
             newV: v,
-            tile: player.type
+            tile: player.type,
+            type: History.CHANGED
         };
         player.u = u;
         player.v = v;
 
-        return change;
+        return {
+            type: Interaction.USER,
+            entity: player,
+            change: change
+        };
     };
 
     DomainGridHelper.prototype.pushBox = function (box, deltaU, deltaV) {
@@ -145,12 +166,28 @@ G.DomainGridHelper = (function () {
             oldV: box.v,
             newU: newU,
             newV: newV,
-            tile: box.type
+            tile: box.type,
+            type: History.CHANGED
         };
         box.u = newU;
         box.v = newV;
 
-        return change;
+        return {
+            type: Interaction.PUSH,
+            entity: box,
+            change: change
+        };
+    };
+
+    DomainGridHelper.prototype.undoChange = function (change, entity) {
+        if (change.type != History.REMOVED && change.type != History.NEW) {
+            if (change.tile === this.grid.get(change.newU, change.newV))
+                this.grid.set(change.newU, change.newV, Tile.EMPTY);
+
+            entity.u = change.oldU;
+            entity.v = change.oldV;
+        }
+        this.grid.set(change.oldU, change.oldV, change.tile);
     };
 
     return DomainGridHelper;
