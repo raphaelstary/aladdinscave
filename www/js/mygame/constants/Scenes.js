@@ -4,5 +4,6 @@ G.Scenes = {
     END_SCREEN: 'end_screen',
     DIALOG_SCREEN: 'dialog_screen',
     FAILURE_SCREEN: 'failure_screen',
-    SUCCESS_SCREEN: 'success_screen'
+    SUCCESS_SCREEN: 'success_screen',
+    LEVEL_OVERVIEW: 'level_overview'
 };
