@@ -27,7 +27,6 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
     };
 
     GameScreen.prototype.__resume = function () {
-        this.world.resume();
         this.playerController.resume();
         this.__paused = false;
     };
@@ -131,9 +130,12 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
         this.world = PlayFactory.createWorld(this.stage, this.timer, this.device, this.level, success, failure, moves,
             topOffset, zero, this.sceneStorage.do30fps);
 
-        self.world.init();
+        self.world.init(function () {
+            self.__resume();
+        });
 
         this.playerController = PlayFactory.createPlayerController(this.world);
+        this.__pause();
         this.pointerHandler = this.events.subscribe(Event.POINTER, function (pointer) {
             if (self.gameState.undo)
                 return;
