@@ -39,18 +39,65 @@ function displayText_(text) {
 var boxCounter = 1;
 
 var BackgroundTiles = {
-    F: 'F',
-    G: 'G'
+    F: 'F', // floor
+    G: 'G', // goal
+    S1: 'S1', // switch
+    S2: 'S2', // switch
+    S3: 'S3', // switch
+    S4: 'S4', // switch
+    S5: 'S5', // switch
+    T: 'T', // trench
+    D: 'D', // door
+    R1: 'R1', // river
+    R2: 'R2', // river
+    R3: 'R3', // river
+    R4: 'R4', // river
+    R5: 'R5', // river
+    R6: 'R6', // river
+    R7: 'R7', // river
+    R8: 'R8', // river
+    R9: 'R9', // river
+    R10: 'R10', // river
+    R11: 'R11', // river
+    R12: 'R12', // river
+    R13: 'R13', // river
+    R14: 'R14', // river
+    RS1: 'RS1', // river switch
+    RS2: 'RS2', // river switch
+    RS3: 'RS3', // river switch
+    RS4: 'RS4', // river switch
+    RS5: 'RS5', // river switch
+    RS6: 'RS6', // river switch
+    RS7: 'RS7', // river switch
+    RS8: 'RS8', // river switch
+    RS9: 'RS9', // river switch
+    RS10: 'RS10', // river switch
+    RS11: 'RS11', // river switch
+    RS12: 'RS12', // river switch
+    RS13: 'RS13', // river switch
+    RS14: 'RS14' // river switch
 };
 var Tiles = {
-    W: 'W',
-    P: 'P',
-    B: 'B'
+    W: 'W', // wall
+    P: 'P', // player
+    B: 'B', // box
+    V: 'V', // vase
+    F2L: 'F2L', // fire ball spawner 2 left
+    F2R: 'F2R', // fire ball spawner 2 right
+    F3L: 'F3L', // fire ball spawner 3 left
+    F3R: 'F3R', // fire ball spawner 3 right
+    AL: 'AL', // arrow trap left
+    AR: 'AR' // arrow trap right
+
 };
 
 var EventTrigger = {
     E1: 'E1',
-    E2: 'E2'
+    E2: 'E2',
+    E3: 'E3',
+    E4: 'E4',
+    E5: 'E5',
+    E6: 'E6'
 };
 
 function getRows(sheet) {
@@ -68,10 +115,11 @@ function getRows(sheet) {
         var eventsRow = [];
         for (var j = 0; j < row.length; j++) {
             var cell = row[j];
+            var tileValues = cell.split(',');
 
-            foregroundRow.push(getTileCode(cell));
-            backgroundRow.push(getBackgroundTileCode(cell));
-            eventsRow.push(getEventTriggerCode(cell));
+            foregroundRow.push(getTileCode(tileValues));
+            backgroundRow.push(getBackgroundTileCode(tileValues));
+            eventsRow.push(getEventTriggerCode(tileValues));
         }
         returnObject.front.push(foregroundRow);
         returnObject.back.push(backgroundRow);
@@ -80,26 +128,38 @@ function getRows(sheet) {
     return returnObject;
 }
 
-function getTileCode(cellValue) {
-    for (var key in Tiles)
-        if (contains(cellValue, key)) {
-            var tile = Tiles[key];
-            return tile === Tiles.B ? tile + boxCounter++ : tile;
+function getTileCode(cellValues) {
+    for (var i = 0; i < cellValues.length; i++) {
+        var cellValue = cellValues[i];
+        for (var key in Tiles) {
+            if (contains(cellValue, key)) {
+                var tile = Tiles[key];
+                return tile === Tiles.B ? tile + boxCounter++ : tile;
+            }
         }
+    }
     return 0;
 }
 
-function getBackgroundTileCode(cellValue) {
-    for (var key in BackgroundTiles)
-        if (contains(cellValue, key))
-            return BackgroundTiles[key];
+function getBackgroundTileCode(cellValues) {
+    for (var i = 0; i < cellValues.length; i++) {
+        var cellValue = cellValues[i];
+        for (var key in BackgroundTiles) {
+            if (contains(cellValue, key))
+                return BackgroundTiles[key];
+        }
+    }
     return 0;
 }
 
-function getEventTriggerCode(cellValue) {
-    for (var key in EventTrigger)
-        if (contains(cellValue, key))
-            return EventTrigger[key];
+function getEventTriggerCode(cellValues) {
+    for (var i = 0; i < cellValues.length; i++) {
+        var cellValue = cellValues[i];
+        for (var key in EventTrigger) {
+            if (contains(cellValue, key))
+                return EventTrigger[key];
+        }
+    }
     return 0;
 }
 
