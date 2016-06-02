@@ -1,8 +1,9 @@
 G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMScene, PauseScreen, add, Math, Font,
-    changeSign, Transition, installPlayerKeyBoard, SuccessScreen, ScreenShaker, PauseReturnValue) {
+    changeSign, Transition, installPlayerKeyBoard, SuccessScreen, ScreenShaker, PauseReturnValue, Storage,
+    localStorage, loadBoolean) {
     "use strict";
 
-    function GameScreen(services, level) {
+    function GameScreen(services, level, levelNr) {
         this.device = services.device;
         this.events = services.events;
         this.sceneStorage = services.sceneStorage;
@@ -11,6 +12,7 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
 
         this.scenes = services.scenes;
         this.level = level;
+        this.levelNr = levelNr;
         this.services = services;
 
         this.abort = false;
@@ -117,6 +119,23 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
 
         function success() {
             self.__itIsOver = true;
+
+            var levelNr = self.levelNr;
+            var levelKey = levelNr < 10 ? '0' + levelNr : levelNr;
+            var nextLevelNr = levelNr + 1;
+            var nextLevelKey = nextLevelNr < 10 ? '0' + nextLevelNr : nextLevelNr;
+            var isUnlocked = loadBoolean(Storage.LEVEL_UNLOCKED + nextLevelKey);
+            var isFinished = loadBoolean(Storage.LEVEL_FINISHED + levelKey);
+
+            if (!isUnlocked) {
+                localStorage.setItem(Storage.LEVEL_UNLOCKED + nextLevelKey, true);
+                localStorage.setItem(Storage.LEVEL_UNLOCKING + nextLevelKey, true);
+            }
+            if (!isFinished) {
+                localStorage.setItem(Storage.LEVEL_FINISHED + levelKey, true);
+                localStorage.setItem(Storage.LEVEL_FINISHED_NOW + levelKey, true);
+            }
+
             self.__showSuccessOverlay(self.nextScene.bind(self));
         }
 
@@ -174,4 +193,5 @@ G.GameScreen = (function (Height, Event, PlayFactory, zero, Width, Scenes, MVVMS
 
     return GameScreen;
 })(H5.Height, H5.Event, G.PlayFactory, H5.zero, H5.Width, G.Scenes, H5.MVVMScene, G.PauseScreen, H5.add, Math, H5.Font,
-    H5.changeSign, H5.Transition, G.installPlayerKeyBoard, G.SuccessScreen, H5.ScreenShaker, G.PauseReturnValue);
+    H5.changeSign, H5.Transition, G.installPlayerKeyBoard, G.SuccessScreen, H5.ScreenShaker, G.PauseReturnValue,
+    G.Storage, H5.lclStorage, H5.loadBoolean);
