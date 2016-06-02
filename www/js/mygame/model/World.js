@@ -11,7 +11,6 @@ G.World = (function () {
         // this.failure = failureFn;
         this.movesCallback = movesFn;
 
-        this.changedBoxes = [];
         this.history = [];
     }
 
@@ -52,13 +51,26 @@ G.World = (function () {
 
         var self = this;
 
-        function postMove() {
+        var Action = {
+            PUSH: 'PUSH',
+            MOVE: 'MOVE'
+        };
 
-            if (self.changedBoxes.length > 0)
-                self.changedBoxes = [];
+        function postMove(action) {
 
             self.movesCounter++;
             self.movesCallback(self.movesCounter);
+
+            // todo next
+            // init all the switches with their states in a dict right from level start
+            // check in post move (or right away?) if smth changed with the switches
+            // check if it triggers smth
+            // if yes trigger the shit + change states + change view etc
+            if (action == Action.MOVE) {
+                self.domainGridHelper.isEntityOnSwitch(self.player);
+            } else if (action == Action.PUSH) {
+
+            }
 
             var success = self.domainGridHelper.isPlayerOnGoal(self.player);
             if (success) {
@@ -75,7 +87,7 @@ G.World = (function () {
         if (canMove) {
             var changeHistory = this.domainGridHelper.movePlayer(player, u, v);
             this.history.push(changeHistory);
-            this.worldView.movePlayer(changeHistory.change, postMove);
+            this.worldView.movePlayer(changeHistory.change, postMove.bind(undefined, Action.MOVE));
 
         } else if (canPush) {
             var deltaU = u - player.u;
@@ -97,7 +109,7 @@ G.World = (function () {
             this.history.push(moveChangeHistory);
             this.history.push(boxChangeHistory);
 
-            this.worldView.movePlayer(moveChangeHistory.change, postMove);
+            this.worldView.movePlayer(moveChangeHistory.change, postMove.bind(undefined, Action.PUSH));
             this.worldView.moveBox(boxChangeHistory.change);
         }
         return true;

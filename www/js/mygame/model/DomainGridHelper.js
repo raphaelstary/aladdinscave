@@ -13,7 +13,9 @@ G.DomainGridHelper = (function () {
         FLOOR: 'F',
         GOAL: 'G',
         SWITCH: 'S',
-        DOOR: 'D'
+        DOOR: 'D',
+        OPEN_DOOR: 'O',
+        HIDDEN_GOAL: 'H'
     };
 
     var Tile = {
@@ -47,11 +49,11 @@ G.DomainGridHelper = (function () {
     DomainGridHelper.prototype.getFloorTiles = function () {
         return this.__getTiles(BackgroundTile.FLOOR, true);
     };
-    
+
     DomainGridHelper.prototype.getSwitches = function () {
         return this.__getTiles(BackgroundTile.SWITCH, true);
     };
-    
+
     DomainGridHelper.prototype.getDoors = function () {
         return this.__getTiles(BackgroundTile.DOOR, true);
     };
@@ -89,15 +91,23 @@ G.DomainGridHelper = (function () {
     DomainGridHelper.prototype.isPlayerOnGoal = function (player) {
         return this.grid.getBackground(player.u, player.v) === BackgroundTile.GOAL;
     };
+    
+    DomainGridHelper.prototype.isEntityOnSwitch = function (entity) {
+        return this.grid.getBackground(entity.u, entity.v)[0] === BackgroundTile.SWITCH;
+    };
 
     DomainGridHelper.prototype.canPlayerMove = function (player, u, v) {
         var isNeighborOfPlayer = this.gridHelper.isNeighbor(player.u, player.v, u, v);
         if (isNeighborOfPlayer) {
             var tileType = this.grid.get(u, v);
-            return tileType === Tile.EMPTY && (this.grid.getBackground(u, v) === BackgroundTile.FLOOR ||
-                this.grid.getBackground(u, v) === BackgroundTile.GOAL);
+            return tileType === Tile.EMPTY && this.__isMovable(this.grid.getBackground(u, v));
         }
         return false;
+    };
+
+    DomainGridHelper.prototype.__isMovable = function (backgroundTileType) {
+        return backgroundTileType === BackgroundTile.FLOOR || backgroundTileType === BackgroundTile.GOAL ||
+            backgroundTileType[0] === BackgroundTile.SWITCH || backgroundTileType[0] === BackgroundTile.OPEN_DOOR;
     };
 
     DomainGridHelper.prototype.canPlayerPush = function (player, u, v) {
