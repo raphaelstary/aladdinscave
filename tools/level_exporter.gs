@@ -104,7 +104,8 @@ function getRows(sheet) {
     var returnObject = {
         back: [],
         front: [],
-        events: []
+        events: [],
+        wires: {}
     };
     var values = sheet.getSheetValues(1, 1, sheet.getMaxRows(), sheet.getMaxColumns());
 
@@ -113,6 +114,7 @@ function getRows(sheet) {
         var foregroundRow = [];
         var backgroundRow = [];
         var eventsRow = [];
+
         for (var j = 0; j < row.length; j++) {
             var cell = row[j];
             var tileValues = cell.split(',');
@@ -120,10 +122,12 @@ function getRows(sheet) {
             foregroundRow.push(getTileCode(tileValues));
             backgroundRow.push(getBackgroundTileCode(tileValues));
             eventsRow.push(getEventTriggerCode(tileValues));
+            getWireInfo(returnObject.wires, tileValues);
+
         }
         returnObject.front.push(foregroundRow);
         returnObject.back.push(backgroundRow);
-        returnObject.events.push(eventsRow)
+        returnObject.events.push(eventsRow);
     }
     return returnObject;
 }
@@ -132,7 +136,7 @@ function getTileCode(cellValues) {
     for (var i = 0; i < cellValues.length; i++) {
         var cellValue = cellValues[i];
         for (var key in Tiles) {
-            if (contains(cellValue, key)) {
+            if (startsWith(cellValue, key)) {
                 var tile = Tiles[key];
                 return tile === Tiles.B ? tile + boxCounter++ : tile;
             }
@@ -145,7 +149,7 @@ function getBackgroundTileCode(cellValues) {
     for (var i = 0; i < cellValues.length; i++) {
         var cellValue = cellValues[i];
         for (var key in BackgroundTiles) {
-            if (contains(cellValue, key))
+            if (startsWith(cellValue, key))
                 return BackgroundTiles[key];
         }
     }
@@ -156,13 +160,44 @@ function getEventTriggerCode(cellValues) {
     for (var i = 0; i < cellValues.length; i++) {
         var cellValue = cellValues[i];
         for (var key in EventTrigger) {
-            if (contains(cellValue, key))
+            if (startsWith(cellValue, key))
                 return EventTrigger[key];
         }
     }
     return 0;
 }
 
-function contains(cell, string) {
-    return cell.indexOf(string) !== -1;
+function getWireInfo(wires, cellValues) {
+    for (var i = 0; i < cellValues.length; i++) {
+        var cellValue = cellValues[i];
+        if (contains(cellValue, '(')) {
+            var triggeredTile = 0;
+            var key;
+            for (key in Tiles) {
+                if (startsWith(cellValue, key)) {
+                    triggeredTile = Tiles[key];
+                    break;
+                }
+            }
+            if (!triggeredTile) {
+                for (key in BackgroundTiles) {
+                    if (startsWith(cellValue, key)) {
+                        triggeredTile = BackgroundTiles[key];
+                        break;
+                    }
+                }
+            }
+
+            var triggers = cellValue.substring(cellValue.indexOf('(') + 1, cellValue.indexOf(')')).split(',');
+            wires[triggeredTile] = triggers;
+        }
+    }
+}
+
+function contains(actualString, searchString) {
+    return actualString.indexOf(searchString) !== -1;
+}
+
+function startsWith(actualString, searchString) {
+    return actualString.indexOf(searchString, 0) === 0;
 }
