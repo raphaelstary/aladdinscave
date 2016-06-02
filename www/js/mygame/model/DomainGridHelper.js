@@ -12,7 +12,8 @@ G.DomainGridHelper = (function () {
         EMPTY: 0,
         FLOOR: 'F',
         GOAL: 'G',
-        SWITCH: 'S'
+        SWITCH: 'S',
+        DOOR: 'D'
     };
 
     var Tile = {
@@ -45,6 +46,14 @@ G.DomainGridHelper = (function () {
 
     DomainGridHelper.prototype.getFloorTiles = function () {
         return this.__getTiles(BackgroundTile.FLOOR, true);
+    };
+    
+    DomainGridHelper.prototype.getSwitches = function () {
+        return this.__getTiles(BackgroundTile.SWITCH, true);
+    };
+    
+    DomainGridHelper.prototype.getDoors = function () {
+        return this.__getTiles(BackgroundTile.DOOR, true);
     };
 
     DomainGridHelper.prototype.getBoxes = function () {

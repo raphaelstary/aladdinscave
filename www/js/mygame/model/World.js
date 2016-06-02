@@ -20,8 +20,9 @@ G.World = (function () {
         this.boxes = this.domainGridHelper.getBoxes();
         this.worldView.drawLevel(this.player, this.boxes, this.domainGridHelper.getWalls(),
             this.domainGridHelper.getGoalTiles(), this.domainGridHelper.getFloorTiles(),
-            this.domainGridHelper.getEmptyTiles(), callback);
-        
+            this.domainGridHelper.getEmptyTiles(), this.domainGridHelper.getSwitches(),
+            this.domainGridHelper.getDoors(), callback);
+
         this.movesCounter = 0;
     };
 
@@ -92,7 +93,7 @@ G.World = (function () {
 
             var boxChangeHistory = this.domainGridHelper.pushBox(myBox, deltaU, deltaV);
             var moveChangeHistory = this.domainGridHelper.movePlayer(player, u, v);
-            
+
             this.history.push(moveChangeHistory);
             this.history.push(boxChangeHistory);
 

@@ -12,12 +12,12 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
         this.walls = [];
         this.goalTiles = [];
         this.floorTiles = {};
+        this.switches = {};
+        this.doors = {};
 
         this.moveSpeed = is30fps ? 5 : 10;
         this.boxFrontMoveSpeed = is30fps ? 15 : 30;
         this.dropInSpeed = is30fps ? 15 : 30;
-        this.boxFrontOpacityEaseIn = is30fps ? 30 : 60;
-        this.boxFrontOpacityEaseOut = is30fps ? 30 : 60;
         this.playerFootPrintEaseOut = is30fps ? 15 : 30;
         this.revertSpeed = is30fps ? 5 : 10;
 
@@ -36,10 +36,14 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
             wrapper.front.remove();
         });
         iterateEntries(this.floorTiles, removeElem);
+        iterateEntries(this.switches, removeElem);
+        iterateEntries(this.doors, removeElem);
         this.goalTiles.forEach(removeElem);
     };
 
-    WorldView.prototype.drawLevel = function (player, boxes, walls, goalTiles, floorTiles, emptyTiles, callback) {
+    WorldView.prototype.drawLevel = function (player, boxes, walls, goalTiles, floorTiles, emptyTiles, switchTiles,
+        doorTiles, callback) {
+
         var defaultDrawable = this.gridViewHelper.create(1, 1, Images.FLOOR);
         var defaultHeight = this.__defaultHeight = defaultDrawable.data.height;
         defaultHeight += 2;
@@ -68,20 +72,7 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
             this.boxes[box.type] = {
                 front: dropIn(this.gridViewHelper.create(box.u, box.v, Images.BOX, defaultHeight)),
                 state: Images.BOX
-                // back: dropIn(this.gridViewHelper.createBackground(box.u, box.v, Images.BOX_BG, 2, defaultHeight))
             };
-            this.boxes[box.type].front.alpha = 0.8;
-            this.boxes[box.type].front.opacityPattern([
-                {
-                    value: 1,
-                    duration: this.boxFrontOpacityEaseIn,
-                    easing: Transition.EASE_IN_QUAD
-                }, {
-                    value: 0.8,
-                    duration: this.boxFrontOpacityEaseOut,
-                    easing: Transition.EASE_OUT_QUAD
-                }
-            ], true);
         }, this);
 
         walls.forEach(function (wall) {
@@ -96,6 +87,20 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
         floorTiles.forEach(function (tile) {
             this.floorTiles[calcCantorPairing(tile.u, tile.v)] = dropIn(
                 this.gridViewHelper.createBackground(tile.u, tile.v, Images.FLOOR, 1, defaultHeight));
+        }, this);
+
+        switchTiles.forEach(function (switchTile) {
+            this.switches[switchTile.type] = {
+                front: dropIn(this.gridViewHelper.create(switchTile.u, switchTile.v, Images.SWITCH, defaultHeight)),
+                state: Images.SWITCH
+            };
+        }, this);
+
+        doorTiles.forEach(function (door) {
+            this.doors[door.type] = {
+                front: dropIn(this.gridViewHelper.create(door.u, door.v, Images.DOOR, defaultHeight)),
+                state: Images.DOOR
+            };
         }, this);
     };
 
@@ -117,7 +122,6 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
             this.boxes[changeSet.tile].path.finish();
         }
 
-        // var self = this;
         var path = this.gridViewHelper.move(this.boxes[changeSet.tile].front, changeSet.newU, changeSet.newV,
             this.boxFrontMoveSpeed, callback);
         path.setSpacing(Transition.EASE_OUT_ELASTIC);
