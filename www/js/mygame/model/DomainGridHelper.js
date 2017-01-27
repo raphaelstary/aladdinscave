@@ -70,6 +70,7 @@ G.DomainGridHelper = (function () {
         return this.__getTiles(BackgroundTile.GOAL, true);
     };
 
+    // todo: remove. this is already in core in a newer version of H5.js
     DomainGridHelper.prototype.__getTiles = function (name, isBackground) {
         var parts = [];
 

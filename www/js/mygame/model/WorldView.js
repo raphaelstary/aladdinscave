@@ -26,6 +26,7 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
     }
 
     WorldView.prototype.preDestroy = function () {
+        this.defaultDrawable.remove();
         this.player.remove();
         function removeElem(elem) {
             elem.remove();
@@ -44,10 +45,10 @@ G.WorldView = (function (calcCantorPairing, iterateEntries, Transition, wrap, ra
     WorldView.prototype.drawLevel = function (player, boxes, walls, goalTiles, floorTiles, emptyTiles, switchTiles,
         doorTiles, callback) {
 
-        var defaultDrawable = this.gridViewHelper.create(1, 1, Images.FLOOR);
+        var defaultDrawable = this.defaultDrawable = this.gridViewHelper.create(1, 1, Images.FLOOR);
         var defaultHeight = this.__defaultHeight = defaultDrawable.data.height;
         defaultHeight += 2;
-        defaultDrawable.remove();
+        this.defaultDrawable.show = false; // defaultDrawable.remove();
 
         var spacing = Transition.EASE_IN_SIN;
         var yFn = changeSign(Height.HALF);
